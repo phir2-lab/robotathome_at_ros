@@ -17,6 +17,8 @@
     <node pkg="robotathome_at_ros" type="generate_depth_cloud" name="generate_depth_cloud_3"><param name="~camera_name" type="string" value="/camera/RGBD_3"/></node>
     <node pkg="robotathome_at_ros" type="generate_depth_cloud" name="generate_depth_cloud_4"><param name="~camera_name" type="string" value="/camera/RGBD_4"/></node>
 
+    <node pkg="robotathome_at_ros" type="pub_odom" name="pub_odom"/>
+
     <!-- ### Visualization ### -->
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robotathome_at_ros)/multiRGBD+laser.rviz"/>
 
