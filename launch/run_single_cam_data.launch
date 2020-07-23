@@ -1,0 +1,41 @@
+<launch>
+
+    <param name="/use_sim_time" value="true"/>
+
+    <arg name="dataset" default="alma-s1" />
+    <arg name="roomName" default="fullhouse1" />
+
+    <!-- ### Mapping ### -->
+    <include file="$(find hector_mapping)/launch/mapping_default.launch">
+        <arg name="base_frame" value="base_link"/>
+        <arg name="odom_frame" value="base_link"/>
+    </include>
+
+    <!-- ### Point cloud from depth ### -->
+    <node pkg="robotathome_at_ros" type="generate_depth_cloud" name="generate_depth_cloud_4"><param name="~camera_name" type="string" value="/camera/RGBD_4"/></node>
+
+    <node pkg="robotathome_at_ros" type="pub_odom" name="pub_odom"/>
+
+    <!-- ### Visualization ### -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robotathome_at_ros)/multiRGBD+laser.rviz"/>
+
+    <!-- ### Rotating images for proper visualization ### -->
+    <node pkg="robotathome_at_ros" type="rotate90.py" name="rotate90_4"><param name="~input_topic" type="string" value="camera/RGBD_4/rgb/image_raw"/></node>
+    <node pkg="robotathome_at_ros" type="rotate90.py" name="rotate90_4d"><param name="~input_topic" type="string" value="camera/RGBD_4/depth/image_raw"/></node>
+
+    <!-- ### TF Publisher ### x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
+    <node pkg="tf" type="static_transform_publisher" name="baselink_laser_broadcaster" args="0.205 0 0.31 0 0 0 base_link laser 10"/>
+    <node pkg="tf" type="static_transform_publisher" name="laser_HOKUYO1" args="0 0 0 0 0 0 laser HOKUYO1 10"/>
+
+    <!--  CAM4: yaw   0 pitch 0 roll 90 :            0 0 1.570796327 -->
+    <!--  roll and pitch inverted!!! -->
+    <node pkg="tf" type="static_transform_publisher" name="baselink_cam4_broadcaster" args="0.285      0 1.045            0 1.570796327 0 base_link camera/RGBD_4 10"/>
+
+    <!-- ### Bagfile ### -->
+    <arg name="bagpath" default="$(find robotathome_at_ros)/bagfiles/$(arg dataset)/$(arg roomName)" />
+    <arg name="bag_laser" default="$(arg bagpath)/$(arg dataset)_$(arg roomName)_LASER-2_hokuyo_processed.bag" />
+    <arg name="bag_cam4" default="$(arg bagpath)/$(arg dataset)_$(arg roomName)_rgbd_RGB_4.bag" />
+    <arg name="bag_cam4D" default="$(arg bagpath)/$(arg dataset)_$(arg roomName)_rgbd_D_4.bag" />
+    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock $(arg bag_laser) $(arg bag_cam4) $(arg bag_cam4D)" required="true"/>
+
+</launch>
